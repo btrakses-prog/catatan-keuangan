@@ -1,0 +1,1 @@
+<!doctype html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Kas WiFi</title><link rel="stylesheet" href="assets/style.css"></head><body><header class="topbar"><a class="brand" href="index.php">📡 <span>Kas WiFi</span></a><a class="logout" href="logout.php">Keluar</a></header><main class="main">

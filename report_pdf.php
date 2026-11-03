@@ -1,0 +1,11 @@
+<?php
+require 'config.php';require_login();
+$autoload=__DIR__.'/vendor/autoload.php';if(!file_exists($autoload)){exit('Library PDF belum terpasang. Jalankan composer install.');}require $autoload;use Dompdf\Dompdf;
+$pdo=db();$from=$_GET['from']??date('Y-m-01');$to=$_GET['to']??date('Y-m-d');
+$s=$pdo->prepare("SELECT * FROM transactions WHERE transaction_date BETWEEN ? AND ? ORDER BY transaction_date,id");$s->execute([$from,$to]);$rows=$s->fetchAll();
+$in=$out=0;$types=$pdo->query('SELECT * FROM percentage_types ORDER BY id')->fetchAll();
+$html='<style>body{font-family:DejaVu Sans;font-size:10px}table{width:100%;border-collapse:collapse;margin-bottom:14px}th,td{border:1px solid #bbb;padding:5px}th{background:#eee}.check{font-size:14px;text-align:center;width:45px}.summary{margin:10px 0}.share-title{margin-top:18px}</style><h1>Laporan Kas WiFi</h1><p>'.e($from).' s/d '.e($to).'</p><table><tr><th>No</th><th class="check">Koreksi</th><th>Tanggal</th><th>Jenis</th><th>Nominal</th><th>Keterangan</th></tr>';
+foreach($rows as $i=>$r){if($r['type']==='in')$in+=$r['amount'];else$out+=$r['amount'];$html.='<tr><td>'.($i+1).'</td><td class="check">□</td><td>'.e($r['transaction_date']).'</td><td>'.($r['type']==='in'?'Uang Masuk':'Uang Keluar').'</td><td>'.rupiah($r['amount']).'</td><td>'.e($r['description']).'</td></tr>';}
+$html.='</table><div class="summary"><b>Total Masuk:</b> '.rupiah($in).' &nbsp;&nbsp; <b>Total Keluar:</b> '.rupiah($out).' &nbsp;&nbsp; <b>Saldo:</b> '.rupiah($in-$out).'</div><h3 class="share-title">Hasil Pembagian Persentase</h3><p>Dasar pembagian: Total Uang Masuk ('.rupiah($in).').</p><table><tr><th>No</th><th>Jenis Pembagian</th><th>Persentase</th><th>Hasil</th></tr>';
+foreach($types as $i=>$t){$hasil=$in*((float)$t['percentage']/100);$html.='<tr><td>'.($i+1).'</td><td>'.e($t['name']).'</td><td>'.number_format((float)$t['percentage'],2).'%</td><td>'.rupiah($hasil).'</td></tr>';}
+$html.='</table>';$d=new Dompdf();$d->loadHtml($html);$d->setPaper('A4','landscape');$d->render();$d->stream('laporan-kas.pdf',['Attachment'=>true]);

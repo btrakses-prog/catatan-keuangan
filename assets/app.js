@@ -1,0 +1,1 @@
+document.addEventListener('DOMContentLoaded',()=>{document.querySelectorAll('a[href*="delete"]').forEach(a=>a.addEventListener('click',e=>{if(!confirm('Yakin menghapus data ini?'))e.preventDefault()}));});
